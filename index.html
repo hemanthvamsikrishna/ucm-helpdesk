@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UCM Helpdesk AI Agent</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; display: flex; flex-direction: column; height: 100vh; }
+    header { background: #8B0000; color: white; padding: 16px 24px; }
+    header h1 { font-size: 1.2rem; font-weight: 600; }
+    header p { font-size: 0.8rem; opacity: 0.85; margin-top: 2px; }
+
+    #topics { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 10px 24px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    #topics span.label { font-size: 0.78rem; color: #888; margin-right: 4px; }
+    .topic-chip { background: #f9f0f0; color: #8B0000; border: 1px solid #e8c8c8; border-radius: 20px; padding: 4px 12px; font-size: 0.78rem; cursor: pointer; transition: background 0.2s; }
+    .topic-chip:hover { background: #8B0000; color: white; }
+
+    #chat-window { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .message { max-width: 75%; padding: 12px 16px; border-radius: 12px; line-height: 1.5; font-size: 0.95rem; }
+    .user { background: #8B0000; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+    .bot { background: white; color: #222; align-self: flex-start; border-bottom-left-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .bot.loading { color: #999; font-style: italic; }
+
+    .welcome { text-align: center; color: #888; font-size: 0.9rem; margin-top: 24px; }
+    .welcome h2 { color: #8B0000; margin-bottom: 8px; }
+    .welcome p { margin-bottom: 20px; }
+
+    .suggested-prompts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 8px; }
+    .prompt-btn { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 8px 14px; font-size: 0.85rem; color: #444; cursor: pointer; text-align: left; transition: border-color 0.2s; }
+    .prompt-btn:hover { border-color: #8B0000; color: #8B0000; }
+
+    #input-area { background: white; padding: 16px 24px; display: flex; gap: 12px; border-top: 1px solid #ddd; }
+    #question-input { flex: 1; padding: 12px 16px; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem; outline: none; }
+    #question-input:focus { border-color: #8B0000; }
+    #send-btn { background: #8B0000; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; }
+    #send-btn:hover { background: #a00000; }
+    #send-btn:disabled { background: #ccc; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>UCM Helpdesk AI Agent</h1>
+    <p>Powered by AI · University of Central Missouri</p>
+  </header>
+
+  <div id="topics">
+    <span class="label">Topics:</span>
+    <div class="topic-chip" onclick="filterTopic('Admissions')">🎓 Admissions</div>
+    <div class="topic-chip" onclick="filterTopic('Financial Aid')">💰 Financial Aid</div>
+    <div class="topic-chip" onclick="filterTopic('Housing')">🏠 Housing</div>
+    <div class="topic-chip" onclick="filterTopic('Registrar')">📋 Registrar</div>
+    <div class="topic-chip" onclick="filterTopic('IT Support')">💻 IT Support</div>
+    <div class="topic-chip" onclick="filterTopic('Transcripts')">📄 Transcripts</div>
+  </div>
+
+  <div id="chat-window">
+    <div class="welcome" id="welcome-screen">
+      <h2>Welcome to UCM Helpdesk</h2>
+      <p>Ask me anything about UCM student services. Try one of these:</p>
+      <div class="suggested-prompts">
+        <button class="prompt-btn" onclick="usePrompt(this)">How do I apply for financial aid?</button>
+        <button class="prompt-btn" onclick="usePrompt(this)">How do I request my transcripts?</button>
+        <button class="prompt-btn" onclick="usePrompt(this)">How do I apply for on-campus housing?</button>
+        <button class="prompt-btn" onclick="usePrompt(this)">What are the admissions requirements for freshmen?</button>
+        <button class="prompt-btn" onclick="usePrompt(this)">How do I contact IT support at UCM?</button>
+        <button class="prompt-btn" onclick="usePrompt(this)">What is the FAFSA priority deadline at UCM?</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="input-area">
+    <input id="question-input" type="text" placeholder="Ask a question about UCM..." />
+    <button id="send-btn">Send</button>
+  </div>
+
+  <script>
+    const WEBHOOK_URL = "https://hemanthvkd.app.n8n.cloud/webhook-test/a7ea59f8-dbd5-4614-9db8-3016dba31f65";
+
+    const chatWindow = document.getElementById("chat-window");
+    const input = document.getElementById("question-input");
+    const sendBtn = document.getElementById("send-btn");
+
+    function filterTopic(topic) {
+      const prompts = {
+        "Admissions": "What are the admissions requirements for freshman students at UCM?",
+        "Financial Aid": "How do I apply for financial aid at UCM?",
+        "Housing": "How do I apply for on-campus housing at UCM?",
+        "Registrar": "How do I enroll in classes at UCM?",
+        "IT Support": "How do I contact IT support at UCM?",
+        "Transcripts": "How do I request my official transcripts from UCM?"
+      };
+      input.value = prompts[topic] || "";
+      input.focus();
+    }
+
+    function usePrompt(btn) {
+      input.value = btn.textContent;
+      sendQuestion();
+    }
+
+    function addMessage(text, type) {
+      const welcome = document.getElementById("welcome-screen");
+      if (welcome) welcome.remove();
+      const msg = document.createElement("div");
+      msg.className = `message ${type}`;
+      msg.textContent = text;
+      chatWindow.appendChild(msg);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      return msg;
+    }
+
+    async function sendQuestion() {
+      const question = input.value.trim();
+      if (!question) return;
+      input.value = "";
+      sendBtn.disabled = true;
+      addMessage(question, "user");
+      const loading = addMessage("Thinking...", "bot loading");
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question })
+        });
+        const data = await res.json();
+        loading.remove();
+        addMessage(data.answer || JSON.stringify(data), "bot");
+      } catch (err) {
+        loading.remove();
+        addMessage("Sorry, something went wrong. Please try again.", "bot");
+      } finally {
+        sendBtn.disabled = false;
+        input.focus();
+      }
+    }
+
+    sendBtn.addEventListener("click", sendQuestion);
+    input.addEventListener("keydown", e => { if (e.key === "Enter") sendQuestion(); });
+  </script>
+</body>
+</html>
