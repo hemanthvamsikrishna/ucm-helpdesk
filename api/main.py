@@ -7,6 +7,7 @@ from langgraph.prebuilt import create_react_agent
 from langchain_core.tools import tool
 import os
 from fastapi.middleware.cors import CORSMiddleware
+import re
 
 load_dotenv()
 
@@ -53,7 +54,8 @@ class Question(BaseModel):
 
 @app.post("/ask")
 async def ask(q: Question):
-    system_prompt = """system_prompt = You are a helpful UCM (University of Central Missouri) helpdesk assistant.
+    system_prompt = system_prompt = """You are a warm, helpful assistant for the University of Central Missouri (UCM) student services helpdesk.
+
 Answer student questions about admissions, financial aid, housing, registrar, and IT support.
 
 INSTRUCTIONS:
@@ -61,8 +63,15 @@ INSTRUCTIONS:
 2. Use the search results to answer the question directly and confidently.
 3. If search results contain relevant information, ALWAYS answer using that information. Do not escalate.
 4. Only call escalate_to_human if the search returns absolutely no relevant information after searching twice.
-5. Keep answers friendly, concise, and helpful.
-6. Include contact details like phone numbers or emails from the search results when relevant."""
+5. Keep answers friendly, concise, and helpful. Include contact details from search results when relevant.
+
+HANDLING UNKNOWN QUESTIONS:
+If a student asks something outside your knowledge base, do not say you cannot help or give a blunt refusal. Instead, respond warmly like this: acknowledge what they asked, let them know this particular topic is not something you have details on right now, and gently redirect them to the most relevant UCM office or contact (registrar, financial aid office, housing office, or IT support at 660-543-4357 or tsc@ucmo.edu). Always end with an offer to help with something else.
+
+HANDLING CASUAL MESSAGES:
+If someone says hi, thanks, or makes small talk, respond naturally and briefly, then offer to help with their UCM questions. Do not search Pinecone for casual messages.
+
+Never say things like "I was unable to find", "my knowledge base does not contain", or "I cannot answer that." Always stay warm and redirect gracefully."""
 
     result = agent.invoke({
         "messages": [
@@ -71,6 +80,7 @@ INSTRUCTIONS:
         ]
     })
     answer = result["messages"][-1].content
+    answer = re.sub(r'<function=.*?</function>', '', answer, flags=re.DOTALL).strip()
     return {"answer": answer}
 
 @app.get("/health")
