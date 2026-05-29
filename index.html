@@ -463,12 +463,24 @@
       const panel = document.createElement('div');
       panel.id = 'prompts-panel';
       panel.className = 'prompts-panel';
-      panel.innerHTML = `
-        <div class="prompts-panel-label">${topic}</div>
-        <div class="prompts-list">
-          ${shuffled.map(p => `<button class="prompt-suggestion" onclick="firePrompt(${JSON.stringify(p)})">${p}</button>`).join('')}
-        </div>
-      `;
+
+      const label = document.createElement('div');
+      label.className = 'prompts-panel-label';
+      label.textContent = topic;
+      panel.appendChild(label);
+
+      const list = document.createElement('div');
+      list.className = 'prompts-list';
+
+      shuffled.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'prompt-suggestion';
+        btn.textContent = p;
+        btn.addEventListener('click', () => firePrompt(p));
+        list.appendChild(btn);
+      });
+
+      panel.appendChild(list);
 
       const welcome = document.getElementById('welcome-screen');
       if (welcome) chatWindow.insertBefore(panel, welcome);
