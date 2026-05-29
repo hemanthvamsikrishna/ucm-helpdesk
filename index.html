@@ -3,140 +3,544 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>UCM Helpdesk AI Agent</title>
+  <title>Institutional AI Helpdesk Automation Agent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --navy: #0f2d52;
+      --navy-mid: #1a4278;
+      --navy-soft: #2a5298;
+      --navy-light: #e8eef6;
+      --navy-pale: #f4f7fb;
+      --gold: #C9A84C;
+      --gold-pale: #fdf6e3;
+      --text: #1a1a2e;
+      --text-muted: #6b7a99;
+      --text-light: #9aa8c0;
+      --border: #dce4f0;
+      --bg: #f5f7fc;
+      --white: #ffffff;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', sans-serif; background: #f4f4f4; display: flex; flex-direction: column; height: 100vh; }
-    header { background: #8B0000; color: white; padding: 16px 24px; }
-    header h1 { font-size: 1.2rem; font-weight: 600; }
-    header p { font-size: 0.8rem; opacity: 0.85; margin-top: 2px; }
 
-    #topics { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 10px 24px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    #topics span.label { font-size: 0.78rem; color: #888; margin-right: 4px; }
-    .topic-chip { background: #f9f0f0; color: #8B0000; border: 1px solid #e8c8c8; border-radius: 20px; padding: 4px 12px; font-size: 0.78rem; cursor: pointer; transition: background 0.2s; }
-    .topic-chip:hover { background: #8B0000; color: white; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-    #chat-window { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-    .message { max-width: 75%; padding: 12px 16px; border-radius: 12px; line-height: 1.5; font-size: 0.95rem; }
-    .user { background: #8B0000; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-    .bot { background: white; color: #222; align-self: flex-start; border-bottom-left-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .bot.loading { color: #999; font-style: italic; }
+    /* ── Header ── */
+    header {
+      background: var(--navy);
+      padding: 0 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 12px rgba(15,45,82,0.18);
+    }
 
-    .welcome { text-align: center; color: #888; font-size: 0.9rem; margin-top: 24px; }
-    .welcome h2 { color: #8B0000; margin-bottom: 8px; }
-    .welcome p { margin-bottom: 20px; }
+    .header-left { display: flex; align-items: center; gap: 14px; }
 
-    .suggested-prompts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 8px; }
-    .prompt-btn { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 8px 14px; font-size: 0.85rem; color: #444; cursor: pointer; text-align: left; transition: border-color 0.2s; }
-    .prompt-btn:hover { border-color: #8B0000; color: #8B0000; }
+    .logo-mark {
+      width: 34px; height: 34px;
+      background: rgba(201,168,76,0.18);
+      border: 1px solid rgba(201,168,76,0.35);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
 
-    #input-area { background: white; padding: 16px 24px; display: flex; gap: 12px; border-top: 1px solid #ddd; }
-    #question-input { flex: 1; padding: 12px 16px; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem; outline: none; }
-    #question-input:focus { border-color: #8B0000; }
-    #send-btn { background: #8B0000; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; }
-    #send-btn:hover { background: #a00000; }
-    #send-btn:disabled { background: #ccc; cursor: not-allowed; }
+    .logo-mark svg {
+      width: 17px; height: 17px;
+      fill: none; stroke: var(--gold); stroke-width: 1.8;
+    }
+
+    .header-titles h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.92rem; font-weight: 600;
+      color: var(--white); line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+
+    .header-titles p {
+      font-size: 0.66rem; color: rgba(255,255,255,0.45);
+      text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px;
+    }
+
+    .header-badge {
+      background: rgba(201,168,76,0.14);
+      border: 1px solid rgba(201,168,76,0.3);
+      color: rgba(201,168,76,0.85);
+      font-size: 0.6rem; font-weight: 500;
+      padding: 4px 10px; border-radius: 20px;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+
+    /* ── Topics ── */
+    #topics {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 36px;
+      display: flex; align-items: center; gap: 6px;
+      flex-shrink: 0; overflow-x: auto;
+    }
+    #topics::-webkit-scrollbar { display: none; }
+
+    .topics-label {
+      font-size: 0.66rem; color: var(--text-light);
+      font-weight: 500; text-transform: uppercase;
+      letter-spacing: 0.06em; white-space: nowrap; margin-right: 4px;
+    }
+
+    .topic-chip {
+      background: var(--bg); color: var(--text-muted);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 5px 11px; font-size: 0.72rem; font-weight: 500;
+      cursor: pointer; white-space: nowrap;
+      transition: all 0.14s ease; font-family: 'DM Sans', sans-serif;
+    }
+    .topic-chip:hover, .topic-chip.active {
+      background: var(--navy); color: var(--white); border-color: var(--navy);
+    }
+
+    /* ── Body layout ── */
+    .body-wrap { flex: 1; display: flex; overflow: hidden; }
+
+    /* ── Chat ── */
+    #chat-window {
+      flex: 1; overflow-y: auto;
+      padding: 28px 36px;
+      display: flex; flex-direction: column; gap: 18px;
+    }
+    #chat-window::-webkit-scrollbar { width: 3px; }
+    #chat-window::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── Welcome ── */
+    .welcome-state {
+      display: flex; flex-direction: column;
+      align-items: center; text-align: center;
+      padding: 24px 20px 0;
+    }
+
+    .welcome-icon {
+      width: 48px; height: 48px;
+      background: var(--navy-light); border: 1px solid var(--border);
+      border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+    }
+    .welcome-icon svg {
+      width: 22px; height: 22px;
+      stroke: var(--navy); fill: none; stroke-width: 1.6;
+    }
+
+    .welcome-state h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.35rem; font-weight: 600;
+      color: var(--navy); margin-bottom: 10px;
+    }
+
+    .welcome-desc {
+      font-size: 0.81rem; color: var(--text-muted);
+      line-height: 1.65; max-width: 430px; margin-bottom: 8px;
+    }
+
+    .welcome-tech {
+      font-size: 0.73rem; color: var(--text-light);
+      line-height: 1.6; max-width: 460px; margin-bottom: 26px;
+      font-style: italic;
+    }
+
+    .prompts-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 7px; width: 100%; max-width: 540px;
+    }
+
+    .prompt-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 9px; padding: 11px 13px;
+      font-size: 0.77rem; color: var(--text);
+      cursor: pointer; text-align: left; line-height: 1.45;
+      transition: all 0.14s ease; font-family: 'DM Sans', sans-serif;
+    }
+    .prompt-card:hover {
+      border-color: var(--navy); background: var(--navy-light);
+      color: var(--navy); transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(15,45,82,0.07);
+    }
+    .prompt-card .prompt-icon { font-size: 0.9rem; margin-bottom: 5px; display: block; }
+
+    /* ── Dynamic prompts panel ── */
+    .prompts-panel {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 10px; padding: 13px;
+      animation: fadeSlide 0.17s ease;
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .prompts-panel-label {
+      font-size: 0.65rem; color: var(--text-light);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      font-weight: 500; margin-bottom: 7px;
+    }
+
+    .prompts-list { display: flex; flex-direction: column; gap: 5px; }
+
+    .prompt-suggestion {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 7px; padding: 8px 12px;
+      font-size: 0.77rem; color: var(--text);
+      cursor: pointer; text-align: left;
+      transition: all 0.13s ease; font-family: 'DM Sans', sans-serif;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .prompt-suggestion::before {
+      content: '›'; color: var(--navy-soft);
+      font-size: 1rem; line-height: 1; flex-shrink: 0;
+    }
+    .prompt-suggestion:hover {
+      border-color: var(--navy); background: var(--navy-light); color: var(--navy);
+    }
+
+    /* ── Messages ── */
+    .message-row { display: flex; gap: 9px; align-items: flex-start; }
+    .message-row.user { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 27px; height: 27px; border-radius: 7px;
+      flex-shrink: 0; display: flex; align-items: center;
+      justify-content: center; font-size: 0.58rem; font-weight: 600;
+    }
+    .avatar.bot { background: var(--navy); color: var(--gold); }
+    .avatar.user { background: var(--gold); color: var(--navy); }
+
+    .message-bubble {
+      max-width: 70%; padding: 10px 14px;
+      border-radius: 11px; font-size: 0.845rem; line-height: 1.65;
+    }
+    .message-row.user .message-bubble {
+      background: var(--navy); color: var(--white);
+      border-bottom-right-radius: 3px;
+    }
+    .message-row.bot .message-bubble {
+      background: var(--white); color: var(--text);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 3px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+
+    .typing-dots { display: flex; gap: 3px; align-items: center; padding: 3px 0; }
+    .typing-dots span {
+      width: 5px; height: 5px; background: var(--navy-soft);
+      border-radius: 50%; animation: tdot 1.2s infinite; opacity: 0.35;
+    }
+    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes tdot {
+      0%,60%,100% { transform: translateY(0); }
+      30% { transform: translateY(-4px); opacity: 0.9; }
+    }
+
+    /* ── Footer bar with watermarks ── */
+    .footer-watermark {
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      padding: 10px 36px;
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 24px;
+      flex-shrink: 0;
+    }
+
+    .wm-block {
+      display: flex; align-items: baseline; gap: 8px;
+      flex: 1; min-width: 0;
+    }
+
+    .wm-label {
+      font-size: 0.6rem; color: var(--text-light);
+      text-transform: uppercase; letter-spacing: 0.07em;
+      font-weight: 600; white-space: nowrap; flex-shrink: 0;
+    }
+
+    .wm-text {
+      font-size: 0.65rem; color: var(--text-light);
+      line-height: 1.55;
+    }
+
+    .wm-divider {
+      width: 1px; background: var(--border);
+      align-self: stretch; flex-shrink: 0;
+    }
+
+    .wm-author {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.72rem; color: var(--text-light);
+      font-style: italic; white-space: nowrap;
+      align-self: center; flex-shrink: 0;
+    }
+
+    /* ── Input area ── */
+    #input-area {
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      padding: 13px 36px;
+      display: flex; gap: 9px; align-items: center;
+      flex-shrink: 0;
+    }
+
+    #question-input {
+      flex: 1; padding: 10px 14px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-size: 0.845rem; font-family: 'DM Sans', sans-serif;
+      color: var(--text); background: var(--bg); outline: none;
+      transition: border-color 0.14s;
+    }
+    #question-input:focus { border-color: var(--navy); background: var(--white); }
+    #question-input::placeholder { color: #b0bdd0; }
+
+    #send-btn {
+      background: var(--navy); color: var(--white);
+      border: none; padding: 10px 22px; border-radius: 8px;
+      font-size: 0.845rem; font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer; transition: background 0.14s;
+      display: flex; align-items: center; gap: 6px; white-space: nowrap;
+    }
+    #send-btn:hover { background: var(--navy-mid); }
+    #send-btn:disabled { background: #c5d0e2; cursor: not-allowed; }
+    #send-btn svg {
+      width: 13px; height: 13px;
+      stroke: currentColor; fill: none; stroke-width: 2.2;
+    }
   </style>
 </head>
 <body>
+
   <header>
-    <h1>UCM Helpdesk AI Agent</h1>
-    <p>Powered by AI · University of Central Missouri</p>
+    <div class="header-left">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+      </div>
+      <div class="header-titles">
+        <h1>Institutional AI Helpdesk Automation Agent</h1>
+        <p>University of Central Missouri · Student Services</p>
+      </div>
+    </div>
+    <div class="header-badge">● Live Demo</div>
   </header>
 
   <div id="topics">
-    <span class="label">Topics:</span>
-    <div class="topic-chip" onclick="filterTopic('Admissions')">🎓 Admissions</div>
-    <div class="topic-chip" onclick="filterTopic('Financial Aid')">💰 Financial Aid</div>
-    <div class="topic-chip" onclick="filterTopic('Housing')">🏠 Housing</div>
-    <div class="topic-chip" onclick="filterTopic('Registrar')">📋 Registrar</div>
-    <div class="topic-chip" onclick="filterTopic('IT Support')">💻 IT Support</div>
-    <div class="topic-chip" onclick="filterTopic('Transcripts')">📄 Transcripts</div>
+    <span class="topics-label">Explore:</span>
+    <button class="topic-chip" onclick="loadPrompts(this, 'Admissions')">🎓 Admissions</button>
+    <button class="topic-chip" onclick="loadPrompts(this, 'Financial Aid')">💰 Financial Aid</button>
+    <button class="topic-chip" onclick="loadPrompts(this, 'Housing')">🏠 Housing</button>
+    <button class="topic-chip" onclick="loadPrompts(this, 'Registrar')">📋 Registrar</button>
+    <button class="topic-chip" onclick="loadPrompts(this, 'IT Support')">💻 IT Support</button>
+    <button class="topic-chip" onclick="loadPrompts(this, 'Transcripts')">📄 Transcripts</button>
   </div>
 
-  <div id="chat-window">
-    <div class="welcome" id="welcome-screen">
-      <h2>Welcome to UCM Helpdesk</h2>
-      <p>Ask me anything about UCM student services. Try one of these:</p>
-      <div class="suggested-prompts">
-        <button class="prompt-btn" onclick="usePrompt(this)">How do I apply for financial aid?</button>
-        <button class="prompt-btn" onclick="usePrompt(this)">How do I request my transcripts?</button>
-        <button class="prompt-btn" onclick="usePrompt(this)">How do I apply for on-campus housing?</button>
-        <button class="prompt-btn" onclick="usePrompt(this)">What are the admissions requirements for freshmen?</button>
-        <button class="prompt-btn" onclick="usePrompt(this)">How do I contact IT support at UCM?</button>
-        <button class="prompt-btn" onclick="usePrompt(this)">What is the FAFSA priority deadline at UCM?</button>
+  <div class="body-wrap">
+    <div id="chat-window">
+      <div class="welcome-state" id="welcome-screen">
+        <div class="welcome-icon">
+          <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        </div>
+        <h2>How can I help you today?</h2>
+        <p class="welcome-desc">Ask me anything about UCM student services including admissions, financial aid, housing, transcripts, registrar, and IT support. Select a topic above to get suggested questions.</p>
+        <p class="welcome-tech">This agent uses a RAG pipeline built on scraped UCM public pages, embedded into Pinecone and retrieved at query time, with a LangGraph agent calling Groq LLaMA 3.1 to generate answers. Workflow automation runs through n8n with a human-in-the-loop review layer via Google Sheets.</p>
+        <div class="prompts-grid">
+          <button class="prompt-card" onclick="firePrompt('How do I apply for financial aid at UCM?')">
+            <span class="prompt-icon">💰</span>How do I apply for financial aid at UCM?
+          </button>
+          <button class="prompt-card" onclick="firePrompt('How do I request my official transcripts?')">
+            <span class="prompt-icon">📄</span>How do I request my official transcripts?
+          </button>
+          <button class="prompt-card" onclick="firePrompt('What are the on-campus housing options at UCM?')">
+            <span class="prompt-icon">🏠</span>What are the on-campus housing options?
+          </button>
+          <button class="prompt-card" onclick="firePrompt('How do I contact the IT support center at UCM?')">
+            <span class="prompt-icon">💻</span>How do I contact the IT support center?
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- Footer watermark row -->
+  <div class="footer-watermark">
+    <div class="wm-block">
+      <span class="wm-label">Stack</span>
+      <span class="wm-text">Python · FastAPI · LangGraph · LangChain · Groq LLaMA 3.1 · Pinecone · n8n · Render · GitHub Pages</span>
+    </div>
+    <div class="wm-divider"></div>
+    <div class="wm-block">
+      <span class="wm-label">Note</span>
+      <span class="wm-text">Independent portfolio project. Not affiliated with or endorsed by the University of Central Missouri. All referenced content is publicly available. No student data is collected or processed.</span>
+    </div>
+    <div class="wm-divider"></div>
+    <div class="wm-author">Hemanth Vamsi Krishna</div>
+  </div>
+
   <div id="input-area">
-    <input id="question-input" type="text" placeholder="Ask a question about UCM..." />
-    <button id="send-btn">Send</button>
+    <input id="question-input" type="text" placeholder="Ask a question about UCM student services..." />
+    <button id="send-btn" onclick="sendQuestion()">
+      Send
+      <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+    </button>
   </div>
 
   <script>
     const WEBHOOK_URL = "https://ucm-helpdesk.onrender.com/ask";
 
+    const TOPIC_PROMPTS = {
+      "Admissions": [
+        "What are the admission requirements for freshman applicants?",
+        "How do international students apply to UCM?",
+        "What GPA is required for undergraduate admission?",
+        "How does the transfer admission process work?",
+        "What documents are needed for graduate admissions?"
+      ],
+      "Financial Aid": [
+        "What is the FAFSA priority deadline for Missouri residents?",
+        "How do I apply for UCM scholarships?",
+        "What types of financial aid does UCM offer?",
+        "How do I check my financial aid status on MyCentral?",
+        "Who is my financial aid counselor at UCM?"
+      ],
+      "Housing": [
+        "What residence halls are available at UCM?",
+        "How do I apply for on-campus housing?",
+        "What is the difference between residence halls and apartments?",
+        "When can I move into UCM housing?",
+        "Is there gender-inclusive housing at UCM?"
+      ],
+      "Registrar": [
+        "How do I enroll in classes at UCM?",
+        "What is the process for withdrawing from a course?",
+        "How do I change my major at UCM?",
+        "What are the graduation requirements at UCM?",
+        "How do I get an enrollment verification letter?"
+      ],
+      "IT Support": [
+        "How do I contact the UCM Technology Support Center?",
+        "Where is the IT support center located on campus?",
+        "What are the IT support center hours?",
+        "How do I reset my UCM student email password?",
+        "What software is available free for UCM students?"
+      ],
+      "Transcripts": [
+        "How do I request an official transcript from UCM?",
+        "How long does a transcript request take to process?",
+        "Can I request an unofficial transcript online?",
+        "How do I send my transcript to another institution?",
+        "Is there a fee for ordering a UCM transcript?"
+      ]
+    };
+
     const chatWindow = document.getElementById("chat-window");
     const input = document.getElementById("question-input");
     const sendBtn = document.getElementById("send-btn");
 
-    function filterTopic(topic) {
-      const prompts = {
-        "Admissions": "What are the admissions requirements for freshman students at UCM?",
-        "Financial Aid": "How do I apply for financial aid at UCM?",
-        "Housing": "How do I apply for on-campus housing at UCM?",
-        "Registrar": "How do I enroll in classes at UCM?",
-        "IT Support": "How do I contact IT support at UCM?",
-        "Transcripts": "How do I request my official transcripts from UCM?"
-      };
-      input.value = prompts[topic] || "";
-      input.focus();
+    function loadPrompts(chipEl, topic) {
+      document.querySelectorAll('.topic-chip').forEach(c => c.classList.remove('active'));
+      chipEl.classList.add('active');
+
+      const existing = document.getElementById('prompts-panel');
+      if (existing) existing.remove();
+
+      const shuffled = [...TOPIC_PROMPTS[topic]].sort(() => Math.random() - 0.5).slice(0, 4);
+
+      const panel = document.createElement('div');
+      panel.id = 'prompts-panel';
+      panel.className = 'prompts-panel';
+      panel.innerHTML = `
+        <div class="prompts-panel-label">${topic}</div>
+        <div class="prompts-list">
+          ${shuffled.map(p => `<button class="prompt-suggestion" onclick="firePrompt(${JSON.stringify(p)})">${p}</button>`).join('')}
+        </div>
+      `;
+
+      const welcome = document.getElementById('welcome-screen');
+      if (welcome) chatWindow.insertBefore(panel, welcome);
+      else chatWindow.insertBefore(panel, chatWindow.firstChild);
+      chatWindow.scrollTop = 0;
     }
 
-    function usePrompt(btn) {
-      input.value = btn.textContent;
+    function firePrompt(text) {
+      input.value = text;
       sendQuestion();
     }
 
+    function clearWelcome() {
+      const w = document.getElementById('welcome-screen');
+      if (w) w.remove();
+      const p = document.getElementById('prompts-panel');
+      if (p) p.remove();
+      document.querySelectorAll('.topic-chip').forEach(c => c.classList.remove('active'));
+    }
+
     function addMessage(text, type) {
-      const welcome = document.getElementById("welcome-screen");
-      if (welcome) welcome.remove();
-      const msg = document.createElement("div");
-      msg.className = `message ${type}`;
-      msg.textContent = text;
-      chatWindow.appendChild(msg);
+      clearWelcome();
+      const row = document.createElement('div');
+      row.className = `message-row ${type}`;
+
+      const avatar = document.createElement('div');
+      avatar.className = `avatar ${type}`;
+      avatar.textContent = type === 'user' ? 'You' : 'AI';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'message-bubble';
+
+      if (text === 'loading') {
+        bubble.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+      } else {
+        bubble.textContent = text;
+      }
+
+      row.appendChild(avatar);
+      row.appendChild(bubble);
+      chatWindow.appendChild(row);
       chatWindow.scrollTop = chatWindow.scrollHeight;
-      return msg;
+      return row;
     }
 
     async function sendQuestion() {
       const question = input.value.trim();
       if (!question) return;
-      input.value = "";
+      input.value = '';
       sendBtn.disabled = true;
-      addMessage(question, "user");
-      const loading = addMessage("Thinking...", "bot loading");
+      addMessage(question, 'user');
+      const loadingRow = addMessage('loading', 'bot');
+
       try {
         const res = await fetch(WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question })
         });
         const data = await res.json();
-        loading.remove();
-        addMessage(data.answer || JSON.stringify(data), "bot");
+        loadingRow.remove();
+        addMessage(data.answer || JSON.stringify(data), 'bot');
       } catch (err) {
-        loading.remove();
-        addMessage("Sorry, something went wrong. Please try again.", "bot");
+        loadingRow.remove();
+        addMessage("The server didn't respond. It may be waking up on its free instance. Please try again in about 30 seconds.", 'bot');
       } finally {
         sendBtn.disabled = false;
         input.focus();
       }
     }
 
-    sendBtn.addEventListener("click", sendQuestion);
-    input.addEventListener("keydown", e => { if (e.key === "Enter") sendQuestion(); });
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') sendQuestion(); });
   </script>
 </body>
 </html>
